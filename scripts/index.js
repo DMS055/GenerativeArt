@@ -30,8 +30,23 @@ class FlowField {
     // NOTE: Technically you could be referencing for example the ctx value from line 3 directly in the draw function, but it is considered a bad practice and we should avoid that
     constructor(ctx, width, height) {
         this.#ctx = ctx;
+        this.#ctx.strokeStyle = "white";
         this.#width = width;
         this.#height = height;
         console.log('loaded');
+        this.#draw(10, 10);
+    }
+
+    // As mentioned before - the # signifies that this is a private method and cannot be called from outside the class
+    #draw(x, y) {
+        let length = 5;
+        length = length * 100;
+        // ? beginPath() methon starts a new path (starts drawing a new shape) and ends every other previous path
+        this.#ctx.beginPath();
+        this.#ctx.moveTo(x, y);
+        // The line below marks the end point of our line
+        this.#ctx.lineTo(x + length, y + length);
+        // Draw the line
+        this.#ctx.stroke();
     }
 }
