@@ -62,10 +62,12 @@ class FlowField {
 		this.lastFrameTimestamp = 0;
 		this.interval = 1000/60; // This value determines time between repetitions of an event (in ms), so the highier the value the less smooth it's going to run
         this.timer = 0; // Counts time until it's equal to the interval variable value, then calls the event and resets itself
-        this.cellSize = 6; // Size of the cells, pretty self explanatory
+        this.cellSize = 8; // Size of the cells, pretty self explanatory
         this.gradient;
         this.#colorGradient();
         this.#ctx.strokeStyle = this.gradient;
+        this.rad = 5;
+        this.velocity = 0.02;
 	}
 
     // NOTE: This is an exaple of a private function that references an object inside of the constructor, you can customize it however you want
@@ -84,14 +86,24 @@ class FlowField {
 	}
 
 	// As mentioned before - the # signifies that this is a private method and cannot be called from outside the class
-	#drawLine(angle, x, y) {
-		let length = 3;
-		length = length * 100;
+    #drawLine(angle, x, y) {
+        // Calculating the distance
+        let posX = x;
+        let posY = y;
+        let dx = mouse.x - posX;
+        let dy = mouse.y - posY;
+        let dist = (dx * dx + dy * dy) * 3;
+
+        if (dist > 500000) dist = 500000;
+        else if (dist < 50000) dist = 50000;
+		let length = dist * 0.00005; // We are multiplying because for some reason multiplying in JS is faster than dividing
+
 		// ? beginPath() methon starts a new path (starts drawing a new shape) and ends every other previous path
 		this.#ctx.beginPath();
 		this.#ctx.moveTo(x, y);
 		// The line below marks the end point of our line
-		this.#ctx.lineTo(x + Math.cos(angle) * 25, y + Math.sin(angle) * 40);
+        // Changing those values will result in changing the length of th lines
+		this.#ctx.lineTo(x + Math.cos(angle) * length, y + Math.sin(angle) * length);
 		// Draw the line
 		this.#ctx.stroke();
 	}
@@ -107,6 +119,9 @@ class FlowField {
 			// This method will clear the canvas so we see only the current frame
 			this.#ctx.clearRect(0, 0, this.#width, this.#height);
 
+            this.rad += this.velocity;
+            if (this.rad > 10 || this.rad < -10) this.velocity *= -1;
+
             // Looping through the whole canvas, jumping my the cellSize to create a grid
             /*
                 ? This thing is called a nested for loop, it's pretty basic knowledge, so I will not bother to explain this in here,
@@ -116,7 +131,7 @@ class FlowField {
                 for (let j = 0; j < this.#width; j += this.cellSize) {
                     // Funky trigonometry stuff
                     // Multiplying by smaller values gives less rotation
-                    const angle = Math.cos(j * 0.01) + Math.sin(i * 0.01);
+                    const angle = (Math.cos(mouse.x * j * 0.00002) + Math.sin(mouse.y * i * 0.00002)) * this.rad;
 
                     // There we create a bunch of lines in a grid
                     // See line 76 for reference
