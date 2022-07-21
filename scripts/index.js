@@ -55,25 +55,43 @@ class FlowField {
 
 	// NOTE: Technically you could be referencing for example the ctx value from line 3 directly in the draw function, but it is considered a bad practice and we should avoid that
 	constructor(ctx, width, height) {
-		this.#ctx = ctx;
-		this.#ctx.strokeStyle = "white";
+        this.#ctx = ctx;
+        this.#ctx.lineWidth = 1;
 		this.#width = width;
 		this.#height = height;
 		this.lastFrameTimestamp = 0;
 		this.interval = 1000/60; // This value determines time between repetitions of an event (in ms), so the highier the value the less smooth it's going to run
         this.timer = 0; // Counts time until it's equal to the interval variable value, then calls the event and resets itself
-        this.cellSize = 15; // Size of the cells, pretty self explanatory
+        this.cellSize = 6; // Size of the cells, pretty self explanatory
+        this.gradient;
+        this.#colorGradient();
+        this.#ctx.strokeStyle = this.gradient;
+	}
+
+    // NOTE: This is an exaple of a private function that references an object inside of the constructor, you can customize it however you want
+    #colorGradient() {
+            /*
+			    ? createLinearGradient() requires 4 properties: starting position x and y, ending position x and y
+                ? The way it works is it basically draws a line connecting the specified points then creates a linear gradient along it
+            */
+			this.gradient = this.#ctx.createLinearGradient(0, 0, this.#width, this.#height);
+            this.gradient.addColorStop("0.1", "#ff5c33");
+            this.gradient.addColorStop("0.2", "#ff66b3");
+            this.gradient.addColorStop("0.4", "#ccccff");
+            this.gradient.addColorStop("0.6", "#b3ffff");
+            this.gradient.addColorStop("0.8", "#80ff80");
+            this.gradient.addColorStop("0.9", "#ffff33");
 	}
 
 	// As mentioned before - the # signifies that this is a private method and cannot be called from outside the class
-	#drawLine(x, y) {
+	#drawLine(angle, x, y) {
 		let length = 3;
 		length = length * 100;
 		// ? beginPath() methon starts a new path (starts drawing a new shape) and ends every other previous path
 		this.#ctx.beginPath();
 		this.#ctx.moveTo(x, y);
 		// The line below marks the end point of our line
-		this.#ctx.lineTo(x + 5, y + 5);
+		this.#ctx.lineTo(x + Math.cos(angle) * 25, y + Math.sin(angle) * 40);
 		// Draw the line
 		this.#ctx.stroke();
 	}
@@ -91,14 +109,18 @@ class FlowField {
 
             // Looping through the whole canvas, jumping my the cellSize to create a grid
             /*
-            ? This thing is called a nested for loop, it's pretty basic knowledge, so I will not bother to explain this in here,
-            ? if you don't know how for loops work then my best advice is just to google it and get familliar with this concept as it's pretty crucial
+                ? This thing is called a nested for loop, it's pretty basic knowledge, so I will not bother to explain this in here,
+                ? if you don't know how for loops work then my best advice is just to google it and get familliar with this concept as it's pretty crucial
             */
             for (let i = 0; i < this.#height; i += this.cellSize) {
                 for (let j = 0; j < this.#width; j += this.cellSize) {
+                    // Funky trigonometry stuff
+                    // Multiplying by smaller values gives less rotation
+                    const angle = Math.cos(j * 0.01) + Math.sin(i * 0.01);
+
                     // There we create a bunch of lines in a grid
                     // See line 76 for reference
-                    this.#drawLine(j, i);
+                    this.#drawLine(angle, j, i);
                 }
             }
 
